@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equity Scenario Analysis Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e3c72;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: #667eea;
+            border-radius: 2px;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-group label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .input-group input {
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .calculated-values {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .calc-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .calc-label {
+            font-size: 12px;
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .calc-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e3c72;
+        }
+
+        .scenario-section {
+            margin-bottom: 30px;
+        }
+
+        .scenario-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .scenario-tab {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .scenario-tab.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .scenario-tab.bear.active {
+            background: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .scenario-tab.bull.active {
+            background: #28a745;
+            border-color: #28a745;
+        }
+
+        .scenario-tab .tab-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .scenario-tab .tab-subtitle {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .scenario-inputs {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            display: none;
+        }
+
+        .scenario-inputs.active {
+            display: block;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 20px;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .results-section.visible {
+            display: block;
+        }
+
+        .scenario-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .scenario-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-top: 4px solid #667eea;
+        }
+
+        .scenario-card.bear {
+            border-top-color: #dc3545;
+        }
+
+        .scenario-card.bull {
+            border-top-color: #28a745;
+        }
+
+        .scenario-card-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1e3c72;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .metric-row:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            font-size: 13px;
+            color: #6c757d;
+        }
+
+        .metric-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #212529;
+        }
+
+        .highlight-metric {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .highlight-label {
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 8px;
+        }
+
+        .highlight-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .highlight-value.positive {
+            color: #28a745;
+        }
+
+        .highlight-value.negative {
+            color: #dc3545;
+        }
+
+        .highlight-value.neutral {
+            color: #667eea;
+        }
+
+        .comparison-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .comparison-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th {
+            background: #1e3c72;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .comparison-table .metric-name {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .scenario-tabs {
+                flex-direction: column;
+            }
+
+            .scenario-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+            margin-left: 5px;
+            color: #667eea;
+        }
+
+        .tooltip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+            margin-bottom: 5px;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #0c5460;
+        }
+
+        .disclaimer-banner {
+            background: #fff8e1;
+            border-bottom: 2px solid #f9a825;
+            padding: 14px 40px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .disclaimer-banner .disc-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .disclaimer-banner .disc-text {
+            font-size: 12.5px;
+            color: #5d4037;
+            line-height: 1.6;
+        }
+
+        .disclaimer-banner .disc-text strong {
+            color: #e65100;
+            font-size: 13px;
+        }
+
+        .footer-disclaimer {
+            background: #263238;
+            color: #cfd8dc;
+            padding: 28px 40px;
+            margin-top: 0;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        .footer-disclaimer .footer-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #ff8f00;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .footer-disclaimer .footer-points {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 10px 30px;
+            margin-bottom: 16px;
+        }
+
+        .footer-disclaimer .footer-points li {
+            list-style: none;
+            padding-left: 18px;
+            position: relative;
+            color: #b0bec5;
+        }
+
+        .footer-disclaimer .footer-points li::before {
+            content: '›';
+            position: absolute;
+            left: 0;
+            color: #ff8f00;
+            font-weight: bold;
+        }
+
+        .footer-disclaimer .footer-bottom {
+            border-top: 1px solid #37474f;
+            padding-top: 14px;
+            margin-top: 8px;
+            color: #78909c;
+            font-size: 11.5px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Equity Scenario Analysis Calculator</h1>
+            <p>Analyze investment returns across multiple scenarios with dynamic financial projections</p>
+        </div>
+
+        <div class="disclaimer-banner">
+            <div class="disc-icon">⚠️</div>
+            <div class="disc-text">
+                <strong>DISCLAIMER — For Educational & Illustration Purposes Only.</strong>
+                This tool is intended solely for learning and illustrative purposes. The projections, calculations, and outputs generated do not constitute financial advice, investment recommendations, or solicitation of any kind. Past performance is not indicative of future results. The developer assumes no liability for any financial loss, direct or indirect, arising from the use of this tool. Always consult a SEBI-registered investment advisor before making any investment decisions.
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Base Year Inputs -->
+            <div class="input-section">
+                <div class="section-title">Base Year Data</div>
+                
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label>Current Revenue (₹ Cr) <span class="tooltip" data-tooltip="Annual revenue in crores">ℹ️</span></label>
+                        <input type="number" id="currentRevenue" placeholder="e.g., 1000" step="0.01">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>EBITDA Margin (%) <span class="tooltip" data-tooltip="Earnings before interest, tax, depreciation & amortization">ℹ️</span></label>
+                        <input type="number" id="ebitdaMargin" placeholder="e.g., 25" step="0.1">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>PAT Margin (%) <span class="tooltip" data-tooltip="Profit after tax margin">ℹ️</span></label>
+                        <input type="number" id="patMargin" placeholder="e.g., 15" step="0.1">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Current P/E Ratio <span class="tooltip" data-tooltip="Price to earnings multiple">ℹ️</span></label>
+                        <input type="number" id="currentPE" placeholder="e.g., 15" step="0.1">
+                    </div>
+                </div>
+
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label>Shares Outstanding (Cr) <span class="tooltip" data-tooltip="Total shares in crores">ℹ️</span></label>
+                        <input type="number" id="sharesOutstanding" placeholder="e.g., 50" step="0.01">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Current Stock Price (₹) <span class="tooltip" data-tooltip="Current market price per share">ℹ️</span></label>
+                        <input type="number" id="currentPrice" placeholder="e.g., 450" step="0.01">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Projection Years <span class="tooltip" data-tooltip="Number of years to project (5-15)">ℹ️</span></label>
+                        <input type="number" id="projectionYears" placeholder="e.g., 10" min="5" max="15" value="10">
+                    </div>
+                </div>
+
+                <div class="calculated-values" id="calculatedValues" style="display: none;">
+                    <div class="calc-item">
+                        <div class="calc-label">Current EBITDA</div>
+                        <div class="calc-value" id="calcEBITDA">₹0 Cr</div>
+                    </div>
+                    <div class="calc-item">
+                        <div class="calc-label">Current PAT</div>
+                        <div class="calc-value" id="calcPAT">₹0 Cr</div>
+                    </div>
+                    <div class="calc-item">
+                        <div class="calc-label">Current EPS</div>
+                        <div class="calc-value" id="calcEPS">₹0.00</div>
+                    </div>
+                    <div class="calc-item">
+                        <div class="calc-label">Market Cap</div>
+                        <div class="calc-value" id="calcMarketCap">₹0 Cr</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scenario Inputs -->
+            <div class="input-section scenario-section">
+                <div class="section-title">Scenario Assumptions</div>
+                
+                <div class="info-box">
+                    💡 Configure three scenarios: <strong>Bear</strong> (conservative), <strong>Base</strong> (most likely), and <strong>Bull</strong> (optimistic). Each scenario models different growth and margin assumptions.
+                </div>
+
+                <div class="scenario-tabs">
+                    <div class="scenario-tab bear active" onclick="switchScenario('bear')">
+                        <div class="tab-title">🐻 Bear Case</div>
+                        <div class="tab-subtitle">Conservative</div>
+                    </div>
+                    <div class="scenario-tab base" onclick="switchScenario('base')">
+                        <div class="tab-title">📊 Base Case</div>
+                        <div class="tab-subtitle">Most Likely</div>
+                    </div>
+                    <div class="scenario-tab bull" onclick="switchScenario('bull')">
+                        <div class="tab-title">🚀 Bull Case</div>
+                        <div class="tab-subtitle">Optimistic</div>
+                    </div>
+                </div>
+
+                <!-- Bear Scenario Inputs -->
+                <div class="scenario-inputs active" id="bear-inputs">
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label>Revenue CAGR (%)</label>
+                            <input type="number" id="bear-revenue" placeholder="e.g., 5" step="0.1" value="5">
+                        </div>
+                        <div class="input-group">
+                            <label>Terminal EBITDA Margin (%)</label>
+                            <input type="number" id="bear-ebitda" placeholder="e.g., 20" step="0.1" value="20">
+                        </div>
+                        <div class="input-group">
+                            <label>Terminal PAT Margin (%)</label>
+                            <input type="number" id="bear-pat" placeholder="e.g., 12" step="0.1" value="12">
+                        </div>
+                        <div class="input-group">
+                            <label>Terminal P/E Ratio</label>
+                            <input type="number" id="bear-pe" placeholder="e.g., 12" step="0.1" value="12">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Base Scenario Inputs -->
+                <div class="scenario-inputs" id="base-inputs">
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label>Revenue CAGR (%)</label>
+                            <input type="number" id="base-revenue" placeholder="e.g., 12" step="0.1" value="12">
+                        </div>
+                        <div class="input-group">
+                            <label>Terminal EBITDA Margin (%)</label>
+                            <input type="number" id="base-ebitda" placeholder="e.g., 25" step="0.1" value="25">
+                        </div>
+                        <div class="input-group">
+                            <label>Terminal PAT Margin (%)</label>
+                            <input type="number" id="base-pat" placeholder="e.g., 15" step="0.1" value="15">
+                        </div>
+                        <div class="input-group">
+                            <label>Terminal P/E Ratio</label>
+                            <input type="number" id="base-pe" placeholder="e.g., 15" step="0.1" value="15">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bull Scenario Inputs -->
+                <div class="scenario-inputs" id="bull-inputs">
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label>Revenue CAGR (%)</label>
+                            <input type="number" id="bull-revenue" placeholder="e.g., 20" step="0.1" value="20">
+                        </div>
+                        <div class="input-group">
+                            <label>Terminal EBITDA Margin (%)</label>
+                            <input type="number" id="bull-ebitda" placeholder="e.g., 30" step="0.1" value="30">
+                        </div>
+                        <div class="input-group">
+                            <label>Terminal PAT Margin (%)</label>
+                            <input type="number" id="bull-pat" placeholder="e.g., 20" step="0.1" value="20">
+                        </div>
+                        <div class="input-group">
+                            <label>Terminal P/E Ratio</label>
+                            <input type="number" id="bull-pe" placeholder="e.g., 20" step="0.1" value="20">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="calculate-btn" onclick="calculateScenarios()">🔄 Calculate Scenarios</button>
+
+            <!-- Results Section -->
+            <div class="results-section" id="resultsSection">
+                <div class="section-title">Scenario Analysis Results</div>
+
+                <div class="info-box">
+                    📈 <strong>PEG Ratio Interpretation:</strong> Price-to-Earnings-to-Growth ratio = Terminal P/E ÷ PAT Growth Rate. 
+                    <strong>PEG &lt; 1.0</strong> suggests undervalued growth, 
+                    <strong>PEG = 1.0</strong> is fairly valued, 
+                    <strong>PEG &gt; 1.5</strong> may indicate overvaluation or high-quality premium.
+                </div>
+
+                <!-- Scenario Cards -->
+                <div class="scenario-cards" id="scenarioCards"></div>
+
+                <!-- Comparison Table -->
+                <div class="comparison-table">
+                    <table id="comparisonTable">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Current</th>
+                                <th>Bear Case</th>
+                                <th>Base Case</th>
+                                <th>Bull Case</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Real-time calculation of base year values
+        function updateCalculatedValues() {
+            const revenue = parseFloat(document.getElementById('currentRevenue').value) || 0;
+            const ebitdaMargin = parseFloat(document.getElementById('ebitdaMargin').value) || 0;
+            const patMargin = parseFloat(document.getElementById('patMargin').value) || 0;
+            const shares = parseFloat(document.getElementById('sharesOutstanding').value) || 0;
+            const price = parseFloat(document.getElementById('currentPrice').value) || 0;
+
+            const ebitda = revenue * (ebitdaMargin / 100);
+            const pat = revenue * (patMargin / 100);
+            const eps = shares > 0 ? pat / shares : 0;
+            const marketCap = price * shares;
+
+            document.getElementById('calcEBITDA').textContent = `₹${ebitda.toFixed(1)} Cr`;
+            document.getElementById('calcPAT').textContent = `₹${pat.toFixed(1)} Cr`;
+            document.getElementById('calcEPS').textContent = `₹${eps.toFixed(2)}`;
+            document.getElementById('calcMarketCap').textContent = `₹${marketCap.toFixed(1)} Cr`;
+
+            if (revenue > 0) {
+                document.getElementById('calculatedValues').style.display = 'grid';
+            }
+        }
+
+        // Attach listeners
+        ['currentRevenue', 'ebitdaMargin', 'patMargin', 'sharesOutstanding', 'currentPrice'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updateCalculatedValues);
+        });
+
+        function switchScenario(scenario) {
+            // Update tabs
+            document.querySelectorAll('.scenario-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`.scenario-tab.${scenario}`).classList.add('active');
+
+            // Update inputs
+            document.querySelectorAll('.scenario-inputs').forEach(input => input.classList.remove('active'));
+            document.getElementById(`${scenario}-inputs`).classList.add('active');
+        }
+
+        function calculateScenarios() {
+            // Validate inputs
+            const revenue = parseFloat(document.getElementById('currentRevenue').value);
+            const ebitdaMargin = parseFloat(document.getElementById('ebitdaMargin').value);
+            const patMargin = parseFloat(document.getElementById('patMargin').value);
+            const currentPE = parseFloat(document.getElementById('currentPE').value);
+            const shares = parseFloat(document.getElementById('sharesOutstanding').value);
+            const price = parseFloat(document.getElementById('currentPrice').value);
+            const years = parseInt(document.getElementById('projectionYears').value);
+
+            if (!revenue || !ebitdaMargin || !patMargin || !currentPE || !shares || !price || !years) {
+                alert('Please fill in all base year data fields');
+                return;
+            }
+
+            // Calculate base year metrics
+            const currentPAT = revenue * (patMargin / 100);
+            const currentEPS = currentPAT / shares;
+            const currentEBITDA = revenue * (ebitdaMargin / 100);
+
+            // Calculate scenarios
+            const scenarios = ['bear', 'base', 'bull'];
+            const results = {};
+
+            scenarios.forEach(scenario => {
+                const revCAGR = parseFloat(document.getElementById(`${scenario}-revenue`).value) / 100;
+                const termEBITDA = parseFloat(document.getElementById(`${scenario}-ebitda`).value) / 100;
+                const termPAT = parseFloat(document.getElementById(`${scenario}-pat`).value) / 100;
+                const termPE = parseFloat(document.getElementById(`${scenario}-pe`).value);
+
+                // Terminal year calculations
+                const termRevenue = revenue * Math.pow(1 + revCAGR, years);
+                const termEBITDAValue = termRevenue * termEBITDA;
+                const termPATValue = termRevenue * termPAT;
+                const termEPS = termPATValue / shares;
+                const termPrice = termEPS * termPE;
+                const termMarketCap = termPrice * shares;
+
+                // Calculate CAGR return
+                const returnCAGR = Math.pow(termPrice / price, 1 / years) - 1;
+
+                // Calculate PAT CAGR (growth rate of PAT)
+                const patCAGR = Math.pow(termPATValue / currentPAT, 1 / years) - 1;
+
+                // Calculate PEG Ratio (Terminal PE / PAT CAGR%)
+                // PEG = PE / Growth Rate (in percentage form)
+                const pegRatio = patCAGR > 0 ? termPE / (patCAGR * 100) : 0;
+
+                // Calculate absolute and % changes
+                const revenueGrowth = ((termRevenue - revenue) / revenue) * 100;
+                const ebitdaChange = (termEBITDA - ebitdaMargin) * 100;
+                const patChange = (termPAT - patMargin) * 100;
+                const peChange = ((termPE - currentPE) / currentPE) * 100;
+                const priceChange = ((termPrice - price) / price) * 100;
+
+                results[scenario] = {
+                    termRevenue,
+                    termEBITDAValue,
+                    termEBITDAMargin: termEBITDA * 100,
+                    termPATValue,
+                    termPATMargin: termPAT * 100,
+                    termEPS,
+                    termPrice,
+                    termPE,
+                    termMarketCap,
+                    returnCAGR: returnCAGR * 100,
+                    patCAGR: patCAGR * 100,
+                    pegRatio,
+                    revenueGrowth,
+                    ebitdaChange,
+                    patChange,
+                    peChange,
+                    priceChange
+                };
+            });
+
+            displayResults(results, {
+                revenue,
+                ebitdaMargin,
+                patMargin,
+                currentEBITDA,
+                currentPAT,
+                currentEPS,
+                currentPE,
+                price,
+                years
+            });
+        }
+
+        function displayResults(results, current) {
+            // Show results section
+            document.getElementById('resultsSection').classList.add('visible');
+
+            // Create scenario cards
+            const cardsHTML = Object.entries(results).map(([scenario, data]) => {
+                const scenarioName = scenario.charAt(0).toUpperCase() + scenario.slice(1);
+                const returnClass = data.returnCAGR > 15 ? 'positive' : data.returnCAGR > 0 ? 'neutral' : 'negative';
+                
+                return `
+                    <div class="scenario-card ${scenario}">
+                        <div class="scenario-card-header">${scenarioName} Case</div>
+                        <div class="metric-row">
+                            <span class="metric-label">Terminal Revenue</span>
+                            <span class="metric-value">₹${data.termRevenue.toFixed(1)} Cr</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Terminal EBITDA</span>
+                            <span class="metric-value">₹${data.termEBITDAValue.toFixed(1)} Cr</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Terminal PAT</span>
+                            <span class="metric-value">₹${data.termPATValue.toFixed(1)} Cr</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Terminal EPS</span>
+                            <span class="metric-value">₹${data.termEPS.toFixed(2)}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Terminal Stock Price</span>
+                            <span class="metric-value">₹${data.termPrice.toFixed(2)}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Terminal P/E</span>
+                            <span class="metric-value">${data.termPE.toFixed(1)}x</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">PAT CAGR</span>
+                            <span class="metric-value">${data.patCAGR.toFixed(1)}%</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">PEG Ratio</span>
+                            <span class="metric-value">${data.pegRatio.toFixed(2)}</span>
+                        </div>
+                        <div class="highlight-metric">
+                            <div class="highlight-label">Expected ${current.years}-Year CAGR</div>
+                            <div class="highlight-value ${returnClass}">${data.returnCAGR.toFixed(1)}%</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('scenarioCards').innerHTML = cardsHTML;
+
+            // Create comparison table
+            const tableRows = [
+                {
+                    label: 'Revenue (₹ Cr)',
+                    current: current.revenue.toFixed(1),
+                    bear: results.bear.termRevenue.toFixed(1),
+                    base: results.base.termRevenue.toFixed(1),
+                    bull: results.bull.termRevenue.toFixed(1)
+                },
+                {
+                    label: 'Revenue Growth (%)',
+                    current: '-',
+                    bear: results.bear.revenueGrowth.toFixed(1) + '%',
+                    base: results.base.revenueGrowth.toFixed(1) + '%',
+                    bull: results.bull.revenueGrowth.toFixed(1) + '%'
+                },
+                {
+                    label: 'EBITDA (₹ Cr)',
+                    current: current.currentEBITDA.toFixed(1),
+                    bear: results.bear.termEBITDAValue.toFixed(1),
+                    base: results.base.termEBITDAValue.toFixed(1),
+                    bull: results.bull.termEBITDAValue.toFixed(1)
+                },
+                {
+                    label: 'EBITDA Margin (%)',
+                    current: current.ebitdaMargin.toFixed(1) + '%',
+                    bear: results.bear.termEBITDAMargin.toFixed(1) + '%',
+                    base: results.base.termEBITDAMargin.toFixed(1) + '%',
+                    bull: results.bull.termEBITDAMargin.toFixed(1) + '%'
+                },
+                {
+                    label: 'PAT (₹ Cr)',
+                    current: current.currentPAT.toFixed(1),
+                    bear: results.bear.termPATValue.toFixed(1),
+                    base: results.base.termPATValue.toFixed(1),
+                    bull: results.bull.termPATValue.toFixed(1)
+                },
+                {
+                    label: 'PAT Margin (%)',
+                    current: current.patMargin.toFixed(1) + '%',
+                    bear: results.bear.termPATMargin.toFixed(1) + '%',
+                    base: results.base.termPATMargin.toFixed(1) + '%',
+                    bull: results.bull.termPATMargin.toFixed(1) + '%'
+                },
+                {
+                    label: 'EPS (₹)',
+                    current: current.currentEPS.toFixed(2),
+                    bear: results.bear.termEPS.toFixed(2),
+                    base: results.base.termEPS.toFixed(2),
+                    bull: results.bull.termEPS.toFixed(2)
+                },
+                {
+                    label: 'Stock Price (₹)',
+                    current: current.price.toFixed(2),
+                    bear: results.bear.termPrice.toFixed(2),
+                    base: results.base.termPrice.toFixed(2),
+                    bull: results.bull.termPrice.toFixed(2)
+                },
+                {
+                    label: 'Price Change (%)',
+                    current: '-',
+                    bear: results.bear.priceChange.toFixed(1) + '%',
+                    base: results.base.priceChange.toFixed(1) + '%',
+                    bull: results.bull.priceChange.toFixed(1) + '%'
+                },
+                {
+                    label: 'P/E Multiple',
+                    current: current.currentPE.toFixed(1) + 'x',
+                    bear: results.bear.termPE.toFixed(1) + 'x',
+                    base: results.base.termPE.toFixed(1) + 'x',
+                    bull: results.bull.termPE.toFixed(1) + 'x'
+                },
+                {
+                    label: 'PAT CAGR (%)',
+                    current: '-',
+                    bear: results.bear.patCAGR.toFixed(1) + '%',
+                    base: results.base.patCAGR.toFixed(1) + '%',
+                    bull: results.bull.patCAGR.toFixed(1) + '%'
+                },
+                {
+                    label: 'PEG Ratio',
+                    current: '-',
+                    bear: results.bear.pegRatio.toFixed(2),
+                    base: results.base.pegRatio.toFixed(2),
+                    bull: results.bull.pegRatio.toFixed(2)
+                },
+                {
+                    label: `Expected ${current.years}-Year CAGR (%)`,
+                    current: '-',
+                    bear: results.bear.returnCAGR.toFixed(1) + '%',
+                    base: results.base.returnCAGR.toFixed(1) + '%',
+                    bull: results.bull.returnCAGR.toFixed(1) + '%'
+                }
+            ];
+
+            const tableHTML = tableRows.map(row => `
+                <tr>
+                    <td class="metric-name">${row.label}</td>
+                    <td>${row.current}</td>
+                    <td>${row.bear}</td>
+                    <td>${row.base}</td>
+                    <td>${row.bull}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('tableBody').innerHTML = tableHTML;
+
+            // Scroll to results
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    </script>
+
+        <div class="footer-disclaimer">
+            <div class="footer-title">⚠️ IMPORTANT DISCLAIMER</div>
+            <ul class="footer-points">
+                <li>This tool is built for <strong>educational and illustrative purposes only</strong> and does not constitute financial, investment, tax, or legal advice of any kind.</li>
+                <li>All projections and scenario outputs are <strong>hypothetical estimates</strong> based on user-provided inputs and should not be treated as forecasts or guarantees.</li>
+                <li>No buy, sell, or hold recommendation is made, implied, or suggested for any security, stock, or financial instrument.</li>
+                <li>The developer, creator, or any affiliated party shall <strong>not be held liable</strong> for any financial loss, damage, or adverse outcome — direct or indirect — resulting from the use of this tool.</li>
+                <li>Equity investments are subject to market risks. <strong>Please read all scheme-related documents carefully</strong> before investing.</li>
+                <li>Always consult a <strong>SEBI-registered investment advisor</strong> or qualified financial professional before making any investment decisions.</li>
+            </ul>
+            <div class="footer-bottom">
+                This calculator is provided "as-is" without any warranty, express or implied. &nbsp;|&nbsp; For educational use only &nbsp;|&nbsp; Not affiliated with SEBI, NSE, BSE, or any regulatory body
+            </div>
+        </div>
+
+</body>
+</html>
